@@ -11,10 +11,19 @@ socket.on("locationBroadcast", data => {
   const { user, lat, lng } = data;
 
   if (!markers[user]) {
-    markers[user] = L.marker([lat, lng])
-      .addTo(map)
-      .bindPopup(user);
+    // Create marker
+    const marker = L.marker([lat, lng]).addTo(map);
+
+    // Add name label
+    marker.bindTooltip(user, {
+      permanent: true,
+      direction: "top",
+      offset: [0, -10]
+    });
+
+    markers[user] = marker;
   } else {
+    // Move marker
     markers[user].setLatLng([lat, lng]);
   }
 });
