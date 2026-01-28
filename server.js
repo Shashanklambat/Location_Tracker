@@ -9,15 +9,12 @@ const io = new Server(server);
 
 app.use(express.static(path.join(__dirname, "public")));
 
-const users = {}; // socketId -> { user, lat, lng, lastSeen }
+const users = {};
 
 io.on("connection", socket => {
 
   socket.on("sendLocation", data => {
-    users[socket.id] = {
-      ...data,
-      lastSeen: Date.now()
-    };
+    users[socket.id] = { ...data, lastSeen: Date.now() };
     io.emit("locationBroadcast", users);
   });
 
@@ -32,18 +29,16 @@ io.on("connection", socket => {
   });
 });
 
-// ghost cleanup
+// Remove ghost users
 setInterval(() => {
   const now = Date.now();
   for (let id in users) {
-    if (now - users[id].lastSeen > 10000) {
-      delete users[id];
-    }
+    if (now - users[id].lastSeen > 15000) delete users[id];
   }
   io.emit("locationBroadcast", users);
 }, 5000);
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, "0.0.0.0", () => {
-  console.log("Running on " + PORT);
+  console.log("Running on port " + PORT);
 });

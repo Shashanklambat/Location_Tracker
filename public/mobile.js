@@ -13,7 +13,7 @@ btn.onclick = () => {
         lat: pos.coords.latitude,
         lng: pos.coords.longitude
       });
-    });
+    }, console.error, { enableHighAccuracy:true });
 
     btn.innerText = "Stop Tracking";
     status.innerText = "Tracking ON";
