@@ -30,7 +30,7 @@ socket.on("locationBroadcast", users => {
     div.innerText = u.user;
     div.onclick = () => {
       followUser = u.user;
-      map.flyTo(pos, 17, { animate:true, duration:2 });
+      map.flyTo(pos, 14, { animate:true, duration:2 });
     };
     list.appendChild(div);
   });
