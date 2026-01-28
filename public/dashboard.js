@@ -1,6 +1,8 @@
 const map = L.map("map").setView([20, 78], 5);
 
-L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png").addTo(map);
+L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+  attribution: "© OpenStreetMap"
+}).addTo(map);
 
 const socket = io();
 const markers = {};
@@ -28,7 +30,7 @@ socket.on("locationBroadcast", users => {
     div.innerText = u.user;
     div.onclick = () => {
       followUser = u.user;
-      map.flyTo(pos, 16, { animate:true, duration:1.5 });
+      map.flyTo(pos, 17, { animate:true, duration:2 });
     };
     list.appendChild(div);
   });
