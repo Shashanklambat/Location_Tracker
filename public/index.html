@@ -1,24 +1,25 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Enter Name</title>
+  <title>Username</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body class="center">
-  <h2>Enter Your Name</h2>
-  <input id="username" placeholder="Your name" />
-  <button onclick="goNext()">Next</button>
+
+  <input id="username" placeholder="Enter username" />
+  <button onclick="saveUser()">Next</button>
 
   <script>
-    function goNext() {
+    function saveUser() {
       const name = document.getElementById("username").value.trim();
       if (!name) {
-        alert("Enter name");
+        alert("Enter username");
         return;
       }
       localStorage.setItem("username", name);
-      window.location.href = "mobile.html";
+      window.location.href = "/mobile.html";
     }
   </script>
+
 </body>
 </html>
