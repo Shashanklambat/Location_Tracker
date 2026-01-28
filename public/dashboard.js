@@ -1,55 +1,53 @@
-const map = L.map("map").setView([20, 78], 5);
-
-L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-  attribution: "© OpenStreetMap"
-}).addTo(map);
+const map = new maplibregl.Map({
+  container: "map",
+  style: "https://demotiles.maplibre.org/style.json",
+  center: [78,20],
+  zoom: 4
+});
 
 const socket = io();
 const markers = {};
 let followUser = null;
+let manual = false;
+
+map.on("mousedown", ()=>manual=true);
 
 socket.on("locationBroadcast", users => {
-  const list = document.getElementById("users");
-  list.innerHTML = "<b>Live Devices</b>";
+  document.getElementById("list").innerHTML = "";
+  const bounds = new maplibregl.LngLatBounds();
 
-  const bounds = [];
+  for(let id in users){
+    const u = users[id];
+    const pos = [u.lng,u.lat];
 
-  users.forEach(u => {
-    const pos = [u.lat, u.lng];
-    bounds.push(pos);
+    if(!markers[id]){
+      const el = document.createElement("div");
+      el.style.background="red"; el.style.width="10px"; el.style.height="10px";
+      el.style.borderRadius="50%";
 
-    if (!markers[u.user]) {
-      const m = L.marker(pos).addTo(map);
-      m.bindTooltip(u.user, { permanent: true });
-      markers[u.user] = m;
-    } else {
-      markers[u.user].setLatLng(pos);
+      markers[id]=new maplibregl.Marker(el).setLngLat(pos).addTo(map);
+    }else{
+      markers[id].setLngLat(pos);
     }
 
-    const div = document.createElement("div");
-    div.innerText = u.user;
-    div.onclick = () => {
-      followUser = u.user;
-      map.flyTo(pos, 14, { animate:true, duration:2 });
+    bounds.extend(pos);
+
+    const div=document.createElement("div");
+    div.className="user";
+    div.innerText=u.user;
+    div.onclick=()=>{
+      followUser=id;
+      manual=true;
+      map.flyTo({center:pos,zoom:16,speed:1.2});
     };
     list.appendChild(div);
-  });
-
-  // Remove offline users
-  for (let u in markers) {
-    if (!users.find(x => x.user === u)) {
-      map.removeLayer(markers[u]);
-      delete markers[u];
-    }
   }
 
-  // Auto fit only if not following someone
-  if (!followUser && bounds.length > 0) {
-    map.fitBounds(bounds, { padding:[50,50] });
+  if(!manual && bounds.isEmpty()==false){
+    map.fitBounds(bounds,{padding:60});
   }
 
-  // Keep following selected user
-  if (followUser && markers[followUser]) {
-    map.panTo(markers[followUser].getLatLng(), { animate:true, duration:1 });
+  if(followUser && users[followUser]){
+    map.easeTo({center:[users[followUser].lng,users[followUser].lat],duration:1000});
   }
 });

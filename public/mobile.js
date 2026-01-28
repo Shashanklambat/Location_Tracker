@@ -1,38 +1,27 @@
 const socket = io();
-
 const username = localStorage.getItem("username");
-if (!username) window.location.href = "/";
-
-const startBtn = document.getElementById("startBtn");
-const statusText = document.getElementById("status");
-
 let watchId = null;
 
-startBtn.onclick = () => {
-  if (!navigator.geolocation) {
-    alert("GPS not supported");
-    return;
-  }
+const btn = document.getElementById("btn");
+const status = document.getElementById("status");
 
-  statusText.innerText = "📡 Live Tracking ON";
-
-  watchId = navigator.geolocation.watchPosition(pos => {
-    socket.emit("sendLocation", {
-      user: username,
-      lat: pos.coords.latitude,
-      lng: pos.coords.longitude
+btn.onclick = () => {
+  if (watchId === null) {
+    watchId = navigator.geolocation.watchPosition(pos => {
+      socket.emit("sendLocation", {
+        user: username,
+        lat: pos.coords.latitude,
+        lng: pos.coords.longitude
+      });
     });
-  }, () => {
-    alert("Enable GPS");
-  }, {
-    enableHighAccuracy: true,
-    maximumAge: 0,
-    timeout: 10000
-  });
 
-  startBtn.disabled = true;
-};
-
-window.onbeforeunload = () => {
-  if (watchId) navigator.geolocation.clearWatch(watchId);
+    btn.innerText = "Stop Tracking";
+    status.innerText = "Tracking ON";
+  } else {
+    navigator.geolocation.clearWatch(watchId);
+    socket.emit("stopTracking");
+    watchId = null;
+    btn.innerText = "Start Tracking";
+    status.innerText = "Not Tracking";
+  }
 };

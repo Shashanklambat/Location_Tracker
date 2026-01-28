@@ -9,40 +9,41 @@ const io = new Server(server);
 
 app.use(express.static(path.join(__dirname, "public")));
 
-const users = {}; // socket.id -> user data
+const users = {}; // socketId -> { user, lat, lng, lastSeen }
 
 io.on("connection", socket => {
-  console.log("Connected:", socket.id);
 
   socket.on("sendLocation", data => {
     users[socket.id] = {
-      user: data.user,
-      lat: data.lat,
-      lng: data.lng,
-      time: Date.now()
+      ...data,
+      lastSeen: Date.now()
     };
+    io.emit("locationBroadcast", users);
+  });
 
-    io.emit("locationBroadcast", Object.values(users));
+  socket.on("stopTracking", () => {
+    delete users[socket.id];
+    io.emit("locationBroadcast", users);
   });
 
   socket.on("disconnect", () => {
     delete users[socket.id];
-    io.emit("locationBroadcast", Object.values(users));
+    io.emit("locationBroadcast", users);
   });
 });
 
-// Remove dead users (if GPS closed)
+// ghost cleanup
 setInterval(() => {
   const now = Date.now();
   for (let id in users) {
-    if (now - users[id].time > 15000) {
+    if (now - users[id].lastSeen > 10000) {
       delete users[id];
     }
   }
-  io.emit("locationBroadcast", Object.values(users));
+  io.emit("locationBroadcast", users);
 }, 5000);
 
-const PORT = process.env.PORT || 10000;
+const PORT = process.env.PORT || 3000;
 server.listen(PORT, "0.0.0.0", () => {
-  console.log("Server running on", PORT);
+  console.log("Running on " + PORT);
 });
