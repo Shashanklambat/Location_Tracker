@@ -11,7 +11,13 @@
   </style>
 </head>
 <body>
-  <div id="map"></div>
+  <div style="display:flex; height:100vh;">
+  <div id="map" style="flex:3;"></div>
+  <div id="userList" style="flex:1; padding:10px; overflow:auto; background:#f5f5f5;">
+    <h3>Live Users</h3>
+    <ul id="users"></ul>
+  </div>
+  </div>
 
   <script src="/socket.io/socket.io.js"></script>
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>

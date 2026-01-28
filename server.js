@@ -17,16 +17,20 @@ app.get("/", (req, res) => {
 
 // Socket.IO logic
 io.on("connection", socket => {
-  console.log("User connected");
-
   socket.on("sendLocation", data => {
+    socket.user = data.user;
     io.emit("locationBroadcast", data);
   });
 
-  socket.on("disconnect", () => {
-    console.log("User disconnected");
+  socket.on("userDisconnected", user => {
+  if (markers[user]) {
+    map.removeLayer(markers[user]);
+    delete markers[user];
+    updateUserList();
+  }
   });
 });
+
 
 // 🚨 THIS PART IS CRITICAL FOR RENDER
 const PORT = process.env.PORT || 3000;

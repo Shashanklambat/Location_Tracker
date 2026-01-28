@@ -1,3 +1,12 @@
+const userListEl = document.getElementById("users");
+
+
+let autoFit = true;
+
+map.on("mousedown zoomstart", () => {
+  autoFit = false; // admin took control
+});
+
 const map = L.map("map").setView([20, 78], 5);
 
 L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
@@ -9,6 +18,7 @@ const markers = {};
 const bounds = L.latLngBounds();
 
 socket.on("locationBroadcast", data => {
+  updateUserList();
   const { user, lat, lng } = data;
   const pos = [lat, lng];
 
@@ -28,8 +38,28 @@ socket.on("locationBroadcast", data => {
 
   bounds.extend(pos);
 
-  map.fitBounds(bounds, {
-    padding: [60, 60],
-    maxZoom: 17
-  });
+  if (autoFit) {
+    map.fitBounds(bounds, {
+      padding: [60, 60],
+      maxZoom: 17
+    });
+  }
+
 });
+
+function updateUserList() {
+  userListEl.innerHTML = "";
+
+  Object.keys(markers).forEach(user => {
+    const li = document.createElement("li");
+    li.style.cursor = "pointer";
+    li.innerText = user;
+
+    li.onclick = () => {
+      autoFit = false;
+      map.setView(markers[user].getLatLng(), 17);
+    };
+
+    userListEl.appendChild(li);
+  });
+}
