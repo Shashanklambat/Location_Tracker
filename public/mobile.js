@@ -1,34 +1,42 @@
 const socket = io();
+
 const username = localStorage.getItem("username");
+if (!username) {
+  window.location.href = "/";
+}
 
-document.getElementById("welcome").innerText =
-  "Welcome, " + username;
+const startBtn = document.getElementById("startBtn");
+const statusText = document.getElementById("status");
 
-function startTracking() {
+startBtn.addEventListener("click", () => {
   if (!navigator.geolocation) {
-    alert("GPS not supported");
+    alert("Geolocation not supported");
     return;
   }
 
-  navigator.geolocation.watchPosition(
-    pos => {
-      socket.emit("locationUpdate", {
-        user: username,
-        lat: pos.coords.latitude,
-        lng: pos.coords.longitude
-      });
+  statusText.innerText = "📡 Starting live tracking...";
 
-      document.getElementById("status").innerText =
-        "Tracking started...";
+  navigator.geolocation.watchPosition(
+    position => {
+      const lat = position.coords.latitude;
+      const lng = position.coords.longitude;
+
+      socket.emit("sendLocation", {
+        user: username,
+        lat,
+        lng
+      });
     },
-    err => {
-      document.getElementById("status").innerText =
-        "GPS Error: " + err.message;
+    error => {
+      alert("Location error. Enable GPS & allow permission.");
+      console.error(error);
     },
     {
       enableHighAccuracy: true,
       maximumAge: 0,
-      timeout: 5000
+      timeout: 10000
     }
   );
-}
+
+  startBtn.disabled = true;
+});

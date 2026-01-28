@@ -6,15 +6,15 @@ L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
 
 const socket = io();
 const markers = {};
+const bounds = L.latLngBounds();
 
 socket.on("locationBroadcast", data => {
   const { user, lat, lng } = data;
+  const pos = [lat, lng];
 
   if (!markers[user]) {
-    // Create marker
-    const marker = L.marker([lat, lng]).addTo(map);
+    const marker = L.marker(pos).addTo(map);
 
-    // Add name label
     marker.bindTooltip(user, {
       permanent: true,
       direction: "top",
@@ -23,7 +23,13 @@ socket.on("locationBroadcast", data => {
 
     markers[user] = marker;
   } else {
-    // Move marker
-    markers[user].setLatLng([lat, lng]);
+    markers[user].setLatLng(pos);
   }
+
+  bounds.extend(pos);
+
+  map.fitBounds(bounds, {
+    padding: [60, 60],
+    maxZoom: 17
+  });
 });
